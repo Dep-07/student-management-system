@@ -23,6 +23,7 @@ import javafx.util.Callback;
 import model.Student;
 import model.StudentTM;
 import service.StudentService;
+import service.exception.NotFoundException;
 import util.AppBarIcon;
 import util.MaterialUI;
 
@@ -70,8 +71,9 @@ public class SearchStudentsFormController {
                 studentService.deleteStudent(tm.getNic());
                 tblResults.getItems().remove(tm);
             }
-        }catch (RuntimeException e){
-            new Alert(Alert.AlertType.ERROR, "Failed to delete the item", ButtonType.OK).show();
+        }catch (NotFoundException e){
+            e.printStackTrace();
+            new Alert(Alert.AlertType.ERROR, "Something terribly went wrong, please contact DEPPO!", ButtonType.OK).show();
         }
     }
 
