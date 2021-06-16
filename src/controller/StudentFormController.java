@@ -20,9 +20,13 @@ import util.MaterialUI;
 
 import java.time.LocalDate;
 import java.time.Period;
+import java.time.format.DateTimeParseException;
+
+import static util.ValidationUtil.*;
 
 public class StudentFormController {
 
+    private final StudentService studentService = new StudentService();
     public TextField txtNIC;
     public TextField txtFullName;
     public TextField txtAddress;
@@ -35,9 +39,8 @@ public class StudentFormController {
     public AnchorPane root;
     public ImageView imgLogo;
 
-    private final StudentService studentService = new StudentService();
-
     public void initialize() {
+
         MaterialUI.paintTextFields(txtNIC, txtFullName, txtAddress, txtDOB, txtContactNumber, txtEmail);
 
         Platform.runLater(() -> {
@@ -72,7 +75,7 @@ public class StudentFormController {
         txtDOB.textProperty().addListener((observable, oldValue, newValue) -> {
 
             if (txtDOB.getLength() == 10) {
-//                try {
+                try {
 //                    Date dob = parseDate(txtDOB.getText());
 //                    Date today = new Date();
 //
@@ -80,14 +83,14 @@ public class StudentFormController {
 //                    double year = diff / (1000 * 60 * 60 * 24 * 365.0) ;
 //                    System.out.println("Year: " + year);
 
-                LocalDate dob2 = LocalDate.parse(txtDOB.getText());
-                Period between = Period.between(dob2, LocalDate.now());
+                    LocalDate dob2 = LocalDate.parse(txtDOB.getText());
+                    Period between = Period.between(dob2, LocalDate.now());
 
-                lblAge.setText(between.getYears() + " Years and " + between.getMonths() + " Months " + between.getDays() + " Days old");
+                    lblAge.setText(between.getYears() + " Years and " + between.getMonths() + " Months " + between.getDays() + " Days old");
 
-//                } catch (ParseException e) {
-//                    e.printStackTrace();
-//                }
+                } catch (DateTimeParseException e) {
+                    lblAge.setText("Invalid date of birth");
+                }
             }
 
         });
@@ -155,6 +158,16 @@ public class StudentFormController {
 
             if (btnSave.getText().equals("ADD NEW STUDENT")) {
                 studentService.saveStudent(student);
+
+                txtNIC.clear();
+                txtFullName.clear();
+                txtAddress.clear();
+                txtDOB.clear();
+                lblAge.setText("Enter DOB to display the age");
+                txtContactNumber.clear();
+                txtEmail.clear();
+                txtNIC.requestFocus();
+
             } else {
                 StudentTM tm = (StudentTM) root.getUserData();
                 tm.setFullName(txtFullName.getText());
@@ -172,6 +185,40 @@ public class StudentFormController {
     }
 
     private boolean isValidated() {
-        return false;
+        String nic = txtNIC.getText();
+        String fullName = txtFullName.getText();
+        String address = txtAddress.getText();
+        String dob = txtDOB.getText();
+        String contact = txtContactNumber.getText();
+        String email = txtEmail.getText();
+
+        if (!((nic.length() == 10 && (nic.endsWith("V") || nic.endsWith("v")) && isInteger(nic.substring(0, 9)))
+                || (nic.length() == 12 && isInteger(nic)))) {
+            new Alert(Alert.AlertType.ERROR, "Invalid NIC").show();
+            txtNIC.requestFocus();
+            return false;
+        } else if (!(isValid(fullName, true, false) && fullName.trim().length() >= 3)) {
+            new Alert(Alert.AlertType.ERROR, "Invalid Name. Name should contain at least 3 letters and can contain only alphabetic letters and spaces").show();
+            txtFullName.requestFocus();
+            return false;
+        } else if (!(address.trim().length() >= 4 && isValid(address, true, true, ':', '.', ',', '-', '/', '\\'))) {
+            new Alert(Alert.AlertType.ERROR, "Invalid Address. Address should be at least 4 digits and can contain only alphabetic letters, spaces and - , . / \\").show();
+            txtAddress.requestFocus();
+            return false;
+        } else if (!isValidDate(dob)) {
+            new Alert(Alert.AlertType.ERROR, "Invalid DOB").show();
+            txtDOB.requestFocus();
+            return false;
+        } else if (!(contact.length() == 11 && isInteger(contact.substring(0, 3)) && isInteger(contact.substring(4, 11)))) {
+            new Alert(Alert.AlertType.ERROR, "Invalid Contact Number").show();
+            txtContactNumber.requestFocus();
+            return false;
+        } else if (!isValidEmail(email)) {
+            new Alert(Alert.AlertType.ERROR, "Invalid Email. Email can contain only letters, digits, periods and underscore.").show();
+            txtEmail.requestFocus();
+            return false;
+        } else {
+            return false;
+        }
     }
 }
