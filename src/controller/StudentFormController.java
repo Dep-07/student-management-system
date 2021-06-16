@@ -141,6 +141,11 @@ public class StudentFormController {
 
     public void btnSave_OnAction(ActionEvent actionEvent) {
         try {
+
+            if (!isValidated()) {
+                return;
+            }
+
             Student student = new Student(txtNIC.getText(),
                     txtFullName.getText(),
                     txtAddress.getText(),
@@ -164,5 +169,9 @@ public class StudentFormController {
             e.printStackTrace();
             new Alert(Alert.AlertType.ERROR, "Something terribly went wrong, please contact DEPPO!", ButtonType.OK).show();
         }
+    }
+
+    private boolean isValidated() {
+        return false;
     }
 }
